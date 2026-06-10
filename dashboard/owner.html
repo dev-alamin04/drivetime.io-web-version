@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Owner Dashboard — DriveTime</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f0f2f5;
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            background: #fff;
+            border-bottom: 1px solid #e8e8e8;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 700;
+            color: #1D9E75;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-user {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #1D9E75;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .user-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .btn-logout {
+            font-size: 13px;
+            padding: 6px 16px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .btn-logout:hover {
+            background: #f5f5f5;
+        }
+
+        .page-wrapper {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 28px 24px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #111;
+            margin-bottom: 16px;
+        }
+
+        .drivers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 16px;
+        }
+
+        .driver-card {
+            border-radius: 14px;
+            padding: 26px;
+            color: #fff;
+        }
+
+        .driver-card.available {
+            background: #28987F;
+        }
+
+        .driver-card.on_delivery {
+            background: #A4243B;
+        }
+
+        .driver-card.on_returning {
+            background: #BD632F;
+        }
+
+        .driver-card.offline {
+            background: #888;
+        }
+
+        .card-top {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+
+        .card-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .card-name {
+            font-size: 18px;
+            font-weight: 500;
+            flex: 1;
+        }
+
+        .card-eta {
+            font-size: 20px;
+            opacity: 0.85;
+            font-weight: 500;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-chat {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-action {
+            background: #fff;
+            color: #111;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 0;
+            font-weight: 500;
+            font-size: 13px;
+            flex: 1;
+            cursor: pointer;
+        }
+
+        .btn-action:hover {
+            background: #f0f0f0;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 5px;
+        }
+
+        .status-dot.online {
+            background: #4ade80;
+        }
+
+        .status-dot.offline {
+            background: #f87171;
+        }
+
+        .shift-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .tab-row {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tab-pill {
+            border-radius: 20px;
+            padding: 5px 18px;
+            font-size: 13px;
+            border: 1px solid #ddd;
+            background: transparent;
+            color: #666;
+            cursor: pointer;
+        }
+
+        .tab-pill.active {
+            background: #111;
+            color: #fff;
+            border-color: #111;
+        }
+
+        .shifts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+
+        .shift-card {
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #eee;
+            padding: 16px;
+        }
+
+        .shift-card-top {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .shift-avatar-initials {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #1D9E75;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .shift-avatar-img {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .shift-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .shift-time {
+            font-size: 12px;
+            color: #888;
+            margin-top: 2px;
+        }
+
+        .shift-drivers {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .state-box {
+            text-align: center;
+            padding: 40px;
+            color: #aaa;
+            font-size: 14px;
+            background: #fff;
+            border-radius: 12px;
+            border: 1px solid #eee;
+        }
+
+        .section-divider {
+            margin: 32px 0;
+            border: none;
+            border-top: 1px solid #e8e8e8;
+        }
+
+        /* Track Modal */
+        .track-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .track-modal-overlay.open {
+            display: flex;
+        }
+
+        .track-modal {
+            background: #fff;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        }
+
+        .track-modal-header {
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #eee;
+        }
+
+        .track-modal-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #111;
+        }
+
+        .track-modal-close {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #888;
+            line-height: 1;
+        }
+
+        .track-modal-close:hover {
+            color: #111;
+        }
+
+        #track-map {
+            height: 420px;
+            width: 100%;
+        }
+
+        .track-modal-footer {
+            padding: 12px 20px;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #eee;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .track-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #4ade80;
+            display: inline-block;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.4;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <div class="top-navbar">
+        <div class="brand" id="txt-brand">
+            <img id="brand-logo" src="" style="width:32px;height:32px;border-radius:8px;object-fit:cover;display:none;">
+            <span id="brand-name">DriveTime</span>
+        </div>
+        <div class="nav-user">
+            <div class="user-avatar" id="nav-avatar"></div>
+            <span class="user-name" id="nav-name"></span>
+            <button class="btn-logout" id="txt-logout" onclick="logout()"></button>
+        </div>
+    </div>
+
+    <!-- Page Content -->
+    <div class="page-wrapper">
+        <div class="section-title" id="txt-live-drivers"></div>
+        <div class="drivers-grid" id="live-drivers">
+            <div class="state-box">Loading...</div>
+        </div>
+
+        <hr class="section-divider">
+
+        <div class="shift-header">
+            <div class="section-title" id="txt-todays-shift" style="margin:0"></div>
+            <div class="tab-row">
+                <button class="tab-pill active" id="tab-today" onclick="loadShift('today')"></button>
+                <button class="tab-pill" id="tab-tomorrow" onclick="loadShift('tomorrow')"></button>
+            </div>
+        </div>
+        <div class="shifts-grid" id="shift-list">
+            <div class="state-box">Loading...</div>
+        </div>
+    </div>
+
+    <!-- Track Modal -->
+    <div class="track-modal-overlay" id="track-overlay" onclick="closeTrack(event)">
+        <div class="track-modal">
+            <div class="track-modal-header">
+                <span class="track-modal-title" id="track-title">Tracking driver</span>
+                <button class="track-modal-close" onclick="closeTrackModal()">✕</button>
+            </div>
+            <div id="track-map"></div>
+            <div class="track-modal-footer">
+                <span class="track-dot"></span>
+                <span id="track-updated">Updating...</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pusher-js@8.4.0/dist/web/pusher.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
+    <script src="../translations.js"></script>
+    <script>
+
+        const API_BASE = 'http://ibrahimcheikh_laravel.test/api';
+        const STORAGE_BASE = 'http://ibrahimcheikh_laravel.test';
+
+        function avatarUrl(path) {
+            if (!path) return null;
+            if (path.startsWith('http')) return path;
+            return STORAGE_BASE + '/' + path.replace(/^\//, '');
+        }
+
+        async function apiCall(endpoint, method = 'GET', data = null) {
+            const token = localStorage.getItem('token');
+            const options = {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    ...(token && { 'Authorization': `Bearer ${token}` }),
+                },
+            };
+            if (data) options.body = JSON.stringify(data);
+            try {
+                const response = await fetch(API_BASE + endpoint, options);
+                return await response.json();
+            } catch (err) {
+                console.error('API Error:', err);
+                return { success: false, message: 'Network error!' };
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '../index.html';
+        }
+
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../index.html';
+        }
+
+        function applyLang() {
+            document.getElementById('txt-logout').textContent = t('logout');
+            document.getElementById('txt-live-drivers').textContent = t('live_drivers');
+            document.getElementById('txt-todays-shift').textContent = t('todays_shift');
+            document.getElementById('tab-today').textContent = t('today');
+            document.getElementById('tab-tomorrow').textContent = t('tomorrow');
+        }
+        applyLang();
+
+        const user = JSON.parse(localStorage.getItem('user'));
+        document.getElementById('nav-name').textContent = user.name;
+        document.getElementById('nav-avatar').textContent = user.name.slice(0, 2).toUpperCase();
+
+        const restaurantName = user.restaurant?.name || 'DriveTime';
+        const restaurantLogo = user.restaurant?.logo;
+        document.getElementById('brand-name').textContent = restaurantName;
+        if (restaurantLogo) {
+            const logo = document.getElementById('brand-logo');
+            logo.src = avatarUrl(restaurantLogo);
+            logo.style.display = 'block';
+        }
+
+        // ── Live Drivers ──────────────────────────────────────────
+        async function loadLiveDrivers() {
+            const res = await apiCall('/restaurant/driver/stage');
+            const el = document.getElementById('live-drivers');
+
+            if (!res.success || !res.data?.length) {
+                el.innerHTML = `<div class="state-box">${t('no_drivers')}</div>`;
+                return;
+            }
+
+            el.innerHTML = res.data.map(d => {
+                const avatar = avatarUrl(d.avatar)
+                    ? `<img src="${avatarUrl(d.avatar)}" class="card-avatar" style="object-fit:cover;">`
+                    : `<div class="card-avatar">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
+
+                const eta = d.eta_minutes ? `${d.eta_minutes} min` : '';
+                const dot = d.is_online ? 'online' : 'offline';
+
+                let actionBtn = '';
+                if (d.card_type === 'available' || d.card_type === 'on_delivery') {
+                    actionBtn = `<button class="btn-action" onclick="openTrack(${d.driver_id}, '${d.driver_name}')">${t('track')}</button>`;
+                } else if (d.card_type === 'on_returning') {
+                    actionBtn = `<button class="btn-action">${t('order_ready')}</button>`;
+                }
+
+                return `
+                <div class="driver-card ${d.card_type}">
+                    <div class="card-top">
+                        ${avatar}
+                        <span class="card-name">
+                            <span class="status-dot ${dot}"></span>${d.driver_name}
+                        </span>
+                        ${eta ? `<span class="card-eta">${eta}</span>` : ''}
+                    </div>
+                    <div class="card-actions">
+                        ${actionBtn}
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Today's Shift ─────────────────────────────────────────
+        async function loadShift(day = 'today') {
+            document.getElementById('tab-today').classList.toggle('active', day === 'today');
+            document.getElementById('tab-tomorrow').classList.toggle('active', day === 'tomorrow');
+
+            const res = await apiCall(`/restaurant/today-driver?day=${day}`);
+            const el = document.getElementById('shift-list');
+
+            if (!res.success || !res.data?.length) {
+                el.innerHTML = `<div class="state-box">${t('no_shifts')}</div>`;
+                return;
+            }
+
+            el.innerHTML = res.data.map(d => {
+                const label = d.shift === 'morning' ? t('morning') : t('evening');
+                const shiftIcon = d.shift === 'morning' ? '☀️' : '🌙';
+                const avatar = avatarUrl(d.avatar)
+                    ? `<img src="${avatarUrl(d.avatar)}" class="shift-avatar-img">`
+                    : `<div class="shift-avatar-initials">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
+
+                return `
+                <div class="shift-card">
+                    <div class="shift-card-top">
+                        ${avatar}
+                        <div>
+                            <div class="shift-label">${d.driver_name}</div>
+                            <div class="shift-time">🕐 ${d.from_time} – ${d.to_time} &nbsp;|&nbsp; ${shiftIcon} ${label}</div>
+                        </div>
+                    </div>
+                    <div class="shift-drivers">🏪 ${d.restaurant_name}</div>
+                </div>`;
+            }).join('');
+        }
+
+        // ── Track Map ─────────────────────────────────────────────
+        let trackMap = null;
+        let driverMarker = null;
+        let restaurantMarker = null;
+        let trackInterval = null;
+        let currentDriverId = null;
+
+        const driverIcon = L.divIcon({
+            html: `<div style="background:#A4243B;width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;">🚗</div>`,
+            className: '',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+        });
+
+        const restaurantIcon = L.divIcon({
+            html: `<div style="background:#1D9E75;width:36px;height:36px;border-radius:10px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;">🍕</div>`,
+            className: '',
+            iconSize: [36, 36],
+            iconAnchor: [18, 18],
+        });
+
+        async function openTrack(driverId, driverName) {
+            currentDriverId = driverId;
+            document.getElementById('track-title').textContent = '📍 ' + driverName;
+            document.getElementById('track-overlay').classList.add('open');
+
+            if (!trackMap) {
+                trackMap = L.map('track-map').setView([50.85, 4.35], 12);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap'
+                }).addTo(trackMap);
+            }
+
+            await updateTrackLocation();
+
+            locationChannel = pusher.subscribe(`driver.${driverId}`);
+            locationChannel.bind('location.updated', (data) => {
+                updateMarkersOnly(
+                    parseFloat(data.latitude),
+                    parseFloat(data.longitude)
+                );
+            });
+
+            trackInterval = setInterval(updateTrackLocation, 30000);
+        }
+
+        async function updateTrackLocation() {
+            const res = await apiCall(`/driver/${currentDriverId}/location`);
+            if (!res.success) return;
+
+            const { driver, restaurant } = res.data;
+            const dLat = parseFloat(driver.latitude);
+            const dLng = parseFloat(driver.longitude);
+            const rLat = parseFloat(restaurant.latitude);
+            const rLng = parseFloat(restaurant.longitude);
+
+            // Driver marker
+            if (driverMarker) {
+                driverMarker.setLatLng([dLat, dLng]);
+            } else {
+                driverMarker = L.marker([dLat, dLng], { icon: driverIcon })
+                    .addTo(trackMap)
+                    .bindPopup('🚗 Driver');
+            }
+
+            // Restaurant marker
+            if (restaurantMarker) {
+                restaurantMarker.setLatLng([rLat, rLng]);
+            } else {
+                restaurantMarker = L.marker([rLat, rLng], { icon: restaurantIcon })
+                    .addTo(trackMap)
+                    .bindPopup('🍕 ' + restaurantName);
+            }
+
+            trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [40, 40] });
+
+            // Update footer
+            const now = new Date().toLocaleTimeString();
+            document.getElementById('track-updated').textContent = 'Last updated: ' + now;
+
+            setTimeout(() => trackMap.invalidateSize(), 100);
+        }
+
+        function closeTrackModal() {
+            document.getElementById('track-overlay').classList.remove('open');
+            clearInterval(trackInterval);
+            trackInterval = null;
+            currentDriverId = null;
+
+            if (locationChannel) {
+                locationChannel.unbind_all();
+                pusher.unsubscribe(locationChannel.name);
+                locationChannel = null;
+            }
+
+            if (driverMarker) { trackMap.removeLayer(driverMarker); driverMarker = null; }
+            if (restaurantMarker) { trackMap.removeLayer(restaurantMarker); restaurantMarker = null; }
+        }
+
+        // ── Pusher ────────────────────────────────────────────────
+        loadLiveDrivers();
+        loadShift('today');
+
+        const pusher = new Pusher('0f20a9108f3ebee59109', {
+            cluster: 'mt1',
+            forceTLS: true,
+        });
+
+        pusher.subscribe('restaurant.drivers')
+            .bind('driver.status.updated', () => {
+                loadLiveDrivers();
+            });
+
+        const locationChannel = pusher.subscribe(`driver.${driverId}`);
+        locationChannel.bind('location.updated', (data) => {
+            updateMarkers(data.latitude, data.longitude);
+        });
+
+
+    </script>
+</body>
+
+</html>
