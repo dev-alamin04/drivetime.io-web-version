@@ -2,11 +2,11 @@ const IS_LOCAL = window.location.hostname === 'localhost'
     || window.location.hostname.includes('.test');
 
 const API_BASE = IS_LOCAL
-    ? 'http://ibrahimcheikh_laravel.test/api'
+    ? 'https://ibrahim.thewarriors.team/api'
     : 'https://ibrahim.thewarriors.team/api';
 
 const STORAGE_BASE = IS_LOCAL
-    ? 'http://ibrahimcheikh_laravel.test'
+    ? 'https://ibrahim.thewarriors.team'
     : 'https://ibrahim.thewarriors.team';
     
 function avatarUrl(path) {
