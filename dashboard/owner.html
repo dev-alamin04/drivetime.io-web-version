@@ -7,143 +7,331 @@
     <title>Owner Dashboard — DriveTime</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            background: #f0f2f5;
-            min-height: 100vh;
+        :root {
+            --bg: #f4f6f9;
+            --surface: #ffffff;
+            --surface-2: #f8fafc;
+            --border: #e2e8f0;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --brand: #10b981;
+            --brand-dark: #059669;
+            --brand-light: #d1fae5;
+            --red: #ef4444;
+            --orange: #f97316;
+            --gray: #94a3b8;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.15);
+            --radius: 14px;
+            --radius-sm: 8px;
+            --navbar-h: 64px;
         }
 
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-2: #162032;
+            --border: #2d3f55;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #475569;
+            --brand-light: #052e16;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* ── Navbar ── */
         .top-navbar {
-            background: #fff;
-            border-bottom: 1px solid #e8e8e8;
-            padding: 12px 24px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 0 28px;
+            height: var(--navbar-h);
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 200;
+            box-shadow: var(--shadow-sm);
+            transition: background 0.3s, border-color 0.3s;
         }
 
         .brand {
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
-            color: #1D9E75;
+            color: var(--brand);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: -0.3px;
+        }
+
+        .brand-logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 9px;
+            object-fit: cover;
+            display: none;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .nav-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 13px;
+            flex-shrink: 0;
+        }
+
+        .nav-name {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .btn-theme {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-theme:hover {
+            background: var(--brand-light);
+            color: var(--brand);
+            border-color: var(--brand);
+        }
+
+        .btn-logout {
+            height: 36px;
+            padding: 0 16px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-logout:hover {
+            background: #fee2e2;
+            color: var(--red);
+            border-color: #fecaca;
+        }
+
+        /* ── Page ── */
+        .page-wrapper {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 32px 28px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .nav-user {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .user-avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #1D9E75;
-            color: #fff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 13px;
-        }
-
-        .user-name {
+        .section-title i {
+            color: var(--brand);
             font-size: 14px;
-            font-weight: 500;
-            color: #333;
         }
 
-        .btn-logout {
-            font-size: 13px;
-            padding: 6px 16px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background: transparent;
-            color: #666;
-            cursor: pointer;
-        }
-
-        .btn-logout:hover {
-            background: #f5f5f5;
-        }
-
-        .page-wrapper {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 28px 24px;
-        }
-
-        .section-title {
-            font-size: 16px;
+        .section-badge {
+            background: var(--brand-light);
+            color: var(--brand);
+            font-size: 20px;
             font-weight: 600;
-            color: #111;
-            margin-bottom: 16px;
+            padding: 3px 9px;
+            border-radius: 20px;
         }
 
+        /* ── Driver Cards ── */
         .drivers-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 16px;
         }
 
         .driver-card {
-            border-radius: 14px;
-            padding: 26px;
+            border-radius: var(--radius);
+            padding: 20px 22px;
             color: #fff;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .driver-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .driver-card::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            right: -30px;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.06);
         }
 
         .driver-card.available {
-            background: #28987F;
+            background: linear-gradient(135deg, #10b981, #059669);
         }
 
         .driver-card.on_delivery {
-            background: #A4243B;
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
         }
 
         .driver-card.on_returning {
-            background: #BD632F;
+            background: linear-gradient(135deg, #f97316, #c2410c);
         }
 
         .driver-card.offline {
-            background: #888;
+            background: linear-gradient(135deg, #64748b, #475569);
         }
 
         .card-top {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .card-avatar {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
+            font-weight: 700;
             font-size: 14px;
             flex-shrink: 0;
+            overflow: hidden;
         }
 
-        .card-name {
-            font-size: 18px;
-            font-weight: 500;
+        .card-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-info {
             flex: 1;
         }
 
+        .card-name {
+            font-size: 15px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .card-status-text {
+            font-size: 11px;
+            opacity: 0.75;
+            margin-top: 2px;
+            font-weight: 400;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        .status-dot.online {
+            background: #86efac;
+            box-shadow: 0 0 0 2px rgba(134, 239, 172, 0.3);
+        }
+
+        .status-dot.offline {
+            background: #fca5a5;
+        }
+
         .card-eta {
-            font-size: 20px;
-            opacity: 0.85;
-            font-weight: 500;
+            font-size: 22px;
+            font-weight: 700;
+            opacity: 0.95;
+            letter-spacing: -0.5px;
+        }
+
+        .card-eta span {
+            font-size: 12px;
+            font-weight: 400;
+            opacity: 0.7;
+        }
+
+        .card-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            margin: 0 0 14px;
         }
 
         .card-actions {
@@ -151,74 +339,75 @@
             gap: 8px;
         }
 
-        .btn-chat {
-            background: rgba(255, 255, 255, 0.2);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 14px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-
-        .btn-action {
-            background: #fff;
-            color: #111;
-            border: none;
-            border-radius: 8px;
-            padding: 8px 0;
-            font-weight: 500;
-            font-size: 13px;
+        .btn-card {
             flex: 1;
+            padding: 10px 0;
+            border-radius: var(--radius-sm);
+            border: none;
             cursor: pointer;
-        }
-
-        .btn-action:hover {
-            background: #f0f0f0;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-        }
-
-        .status-dot.online {
-            background: #4ade80;
-        }
-
-        .status-dot.offline {
-            background: #f87171;
-        }
-
-        .shift-header {
+            font-size: 15px;
+            font-weight: 600;
+            font-family: 'Inter', sans-serif;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            justify-content: center;
+            gap: 6px;
+            transition: all 0.15s;
         }
 
+        .btn-card-primary {
+            background: rgba(255, 255, 255, 0.95);
+            color: #0f172a;
+        }
+
+        .btn-card-primary:hover {
+            background: #fff;
+        }
+
+        .btn-card-ghost {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            max-width: 42px;
+        }
+
+        .btn-card-ghost:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        /* ── Divider ── */
+        .section-divider {
+            margin: 36px 0;
+            border: none;
+            border-top: 1px solid var(--border);
+        }
+
+        /* ── Shift Cards ── */
         .tab-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
         }
 
         .tab-pill {
+            padding: 6px 18px;
             border-radius: 20px;
-            padding: 5px 18px;
             font-size: 13px;
-            border: 1px solid #ddd;
+            font-weight: 500;
+            border: 1px solid var(--border);
             background: transparent;
-            color: #666;
+            color: var(--text-secondary);
             cursor: pointer;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
         }
 
         .tab-pill.active {
-            background: #111;
+            background: var(--text-primary);
             color: #fff;
-            border-color: #111;
+            border-color: var(--text-primary);
+        }
+
+        .tab-pill:not(.active):hover {
+            background: var(--surface-2);
         }
 
         .shifts-grid {
@@ -228,80 +417,131 @@
         }
 
         .shift-card {
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #eee;
-            padding: 16px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            padding: 18px;
+            box-shadow: var(--shadow-sm);
+            transition: background 0.3s, border-color 0.3s, box-shadow 0.2s;
+        }
+
+        .shift-card:hover {
+            box-shadow: var(--shadow-md);
         }
 
         .shift-card-top {
             display: flex;
             align-items: center;
             gap: 12px;
-            margin-bottom: 10px;
+            margin-bottom: 12px;
         }
 
-        .shift-avatar-initials {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #1D9E75;
-            color: #fff;
+        .shift-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            background: var(--brand-light);
+            color: var(--brand);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .shift-avatar-img {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            object-fit: cover;
+            font-size: 16px;
             flex-shrink: 0;
         }
 
         .shift-label {
             font-size: 14px;
             font-weight: 600;
-            color: #111;
+            color: var(--text-primary);
         }
 
         .shift-time {
             font-size: 12px;
-            color: #888;
-            margin-top: 2px;
+            color: var(--text-muted);
+            margin-top: 3px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .shift-drivers {
+        .shift-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 10px 0;
+        }
+
+        .driver-avatars {
+            display: flex;
+            align-items: center;
+        }
+
+        .driver-avatar-item {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            border: 2px solid var(--surface);
+            margin-left: -8px;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .driver-avatar-item:first-child {
+            margin-left: 0;
+        }
+
+        .driver-avatar-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .driver-names {
             font-size: 13px;
-            color: #666;
+            color: var(--text-secondary);
+            margin-left: 10px;
         }
 
+        .shift-restaurant {
+            font-size: 12px;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 8px;
+        }
+
+        /* ── State box ── */
         .state-box {
             text-align: center;
-            padding: 40px;
-            color: #aaa;
+            padding: 48px 24px;
+            color: var(--text-muted);
             font-size: 14px;
-            background: #fff;
-            border-radius: 12px;
-            border: 1px solid #eee;
+            background: var(--surface);
+            border-radius: var(--radius);
+            border: 1px dashed var(--border);
         }
 
-        .section-divider {
-            margin: 32px 0;
-            border: none;
-            border-top: 1px solid #e8e8e8;
+        .state-box i {
+            font-size: 28px;
+            margin-bottom: 10px;
+            display: block;
+            color: var(--border);
         }
 
-        /* Track Modal */
+        /* ── Track Modal ── */
         .track-modal-overlay {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
@@ -312,61 +552,80 @@
         }
 
         .track-modal {
-            background: #fff;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 700px;
+            background: var(--surface);
+            border-radius: 20px;
+            height: 85vh;
+            width: 92%;
+            max-width: 960px;
             overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
         }
 
         .track-modal-header {
-            padding: 16px 20px;
+            padding: 18px 22px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border-bottom: 1px solid #eee;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
         }
 
         .track-modal-title {
             font-size: 15px;
             font-weight: 600;
-            color: #111;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .track-modal-title i {
+            color: var(--brand);
         }
 
         .track-modal-close {
-            background: none;
-            border: none;
-            font-size: 20px;
+            width: 32px;
+            height: 32px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 14px;
             cursor: pointer;
-            color: #888;
-            line-height: 1;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
         }
 
         .track-modal-close:hover {
-            color: #111;
+            background: #fee2e2;
+            color: var(--red);
+            border-color: #fecaca;
         }
 
         #track-map {
-            height: 420px;
+            flex: 1;
             width: 100%;
         }
 
         .track-modal-footer {
-            padding: 12px 20px;
+            padding: 12px 22px;
             font-size: 12px;
-            color: #888;
-            border-top: 1px solid #eee;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
+            background: var(--surface);
         }
 
         .track-dot {
-            width: 8px;
-            height: 8px;
+            width: 7px;
+            height: 7px;
             border-radius: 50%;
-            background: #4ade80;
+            background: var(--brand);
             display: inline-block;
             animation: pulse 1.5s infinite;
         }
@@ -379,8 +638,18 @@
             }
 
             50% {
-                opacity: 0.4;
+                opacity: 0.3;
             }
+        }
+
+        .track-modal {
+            display: flex;
+            flex-direction: column;
+        }
+
+        #track-map {
+            flex: 1;
+            min-height: 0;
         }
     </style>
 </head>
@@ -389,49 +658,70 @@
 
     <!-- Navbar -->
     <div class="top-navbar">
-        <div class="brand" id="txt-brand">
-            <img id="brand-logo" src="" style="width:32px;height:32px;border-radius:8px;object-fit:cover;display:none;">
+        <div class="brand">
+            <img id="brand-logo" class="brand-logo" src="">
             <span id="brand-name">DriveTime</span>
         </div>
-        <div class="nav-user">
-            <div class="user-avatar" id="nav-avatar"></div>
-            <span class="user-name" id="nav-name"></span>
-            <button class="btn-logout" id="txt-logout" onclick="logout()"></button>
+        <div class="nav-right">
+            <div class="nav-avatar" id="nav-avatar"></div>
+            <span class="nav-name" id="nav-name"></span>
+            <button class="btn-theme" id="btn-theme" onclick="toggleTheme()" title="Toggle theme">
+                <i class="fa-solid fa-moon" id="theme-icon"></i>
+            </button>
+            <button class="btn-logout" id="txt-logout" onclick="logout()">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </button>
         </div>
     </div>
 
-    <!-- Page Content -->
+    <!-- Page -->
     <div class="page-wrapper">
-        <div class="section-title" id="txt-live-drivers"></div>
+
+        <!-- Live Drivers -->
+        <div class="section-header">
+            <div class="section-title">
+                <span id="txt-live-drivers"></span>
+            </div>
+            <span class="section-badge" id="driver-count"></span>
+        </div>
         <div class="drivers-grid" id="live-drivers">
-            <div class="state-box">Loading...</div>
+            <div class="state-box"><i class="fa-solid fa-spinner fa-spin"></i>Loading drivers...</div>
         </div>
 
         <hr class="section-divider">
 
-        <div class="shift-header">
-            <div class="section-title" id="txt-todays-shift" style="margin:0"></div>
+        <!-- Shifts -->
+        <div class="section-header">
+            <div class="section-title">
+                <span id="txt-todays-shift"></span>
+            </div>
             <div class="tab-row">
                 <button class="tab-pill active" id="tab-today" onclick="loadShift('today')"></button>
                 <button class="tab-pill" id="tab-tomorrow" onclick="loadShift('tomorrow')"></button>
             </div>
         </div>
         <div class="shifts-grid" id="shift-list">
-            <div class="state-box">Loading...</div>
+            <div class="state-box"><i class="fa-solid fa-spinner fa-spin"></i>Loading shifts...</div>
         </div>
+
     </div>
 
     <!-- Track Modal -->
     <div class="track-modal-overlay" id="track-overlay" onclick="closeTrack(event)">
         <div class="track-modal">
             <div class="track-modal-header">
-                <span class="track-modal-title" id="track-title">Tracking driver</span>
-                <button class="track-modal-close" onclick="closeTrackModal()">✕</button>
+                <span class="track-modal-title">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span id="track-title">Tracking driver</span>
+                </span>
+                <button class="track-modal-close" onclick="closeTrackModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
             </div>
             <div id="track-map"></div>
             <div class="track-modal-footer">
                 <span class="track-dot"></span>
-                <span id="track-updated">Updating...</span>
+                <span id="track-updated">Connecting...</span>
             </div>
         </div>
     </div>
@@ -441,10 +731,22 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
     <script src="../translations.js"></script>
     <script>
-
         const API_BASE = 'http://ibrahimcheikh_laravel.test/api';
         const STORAGE_BASE = 'http://ibrahimcheikh_laravel.test';
+        const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJiNWMwYTUxNWJjYTRjYjE5NzEyYWY2YmUzOTRhZmZiIiwiaCI6Im11cm11cjY0In0=';
 
+        // ── Theme ─────────────────────────────────────────────────
+        function toggleTheme() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+            document.getElementById('theme-icon').className = isDark ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+            localStorage.setItem('theme', isDark ? 'light' : 'dark');
+        }
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        document.getElementById('theme-icon').className = savedTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
+
+        // ── Helpers ───────────────────────────────────────────────
         function avatarUrl(path) {
             if (!path) return null;
             if (path.startsWith('http')) return path;
@@ -477,12 +779,11 @@
             window.location.href = '../index.html';
         }
 
-        if (!localStorage.getItem('token')) {
-            window.location.href = '../index.html';
-        }
+        if (!localStorage.getItem('token')) window.location.href = '../index.html';
 
+        // ── Lang ──────────────────────────────────────────────────
         function applyLang() {
-            document.getElementById('txt-logout').textContent = t('logout');
+            document.getElementById('txt-logout').innerHTML = `<i class="fa-solid fa-arrow-right-from-bracket"></i> ${t('logout')}`;
             document.getElementById('txt-live-drivers').textContent = t('live_drivers');
             document.getElementById('txt-todays-shift').textContent = t('todays_shift');
             document.getElementById('tab-today').textContent = t('today');
@@ -490,18 +791,25 @@
         }
         applyLang();
 
+        // ── User ──────────────────────────────────────────────────
         const user = JSON.parse(localStorage.getItem('user'));
-        document.getElementById('nav-name').textContent = user.name;
-        document.getElementById('nav-avatar').textContent = user.name.slice(0, 2).toUpperCase();
-
         const restaurantName = user.restaurant?.name || 'DriveTime';
         const restaurantLogo = user.restaurant?.logo;
+
+        document.getElementById('nav-name').textContent = user.name;
+        document.getElementById('nav-avatar').textContent = user.name.slice(0, 2).toUpperCase();
         document.getElementById('brand-name').textContent = restaurantName;
+
         if (restaurantLogo) {
             const logo = document.getElementById('brand-logo');
             logo.src = avatarUrl(restaurantLogo);
             logo.style.display = 'block';
         }
+
+        // ── Pusher ────────────────────────────────────────────────
+        let locationChannel = null;
+        const pusher = new Pusher('72d8a19b7510d43a0ffe', { cluster: 'ap2', forceTLS: true });
+        pusher.subscribe('restaurant.drivers').bind('driver.status.updated', () => loadLiveDrivers());
 
         // ── Live Drivers ──────────────────────────────────────────
         async function loadLiveDrivers() {
@@ -509,42 +817,120 @@
             const el = document.getElementById('live-drivers');
 
             if (!res.success || !res.data?.length) {
-                el.innerHTML = `<div class="state-box">${t('no_drivers')}</div>`;
+                document.getElementById('driver-count').textContent = '';
+                el.innerHTML = `<div class="state-box"><i class="fa-solid fa-circle-xmark"></i>${t('no_drivers')}</div>`;
                 return;
             }
 
+            document.getElementById('driver-count').textContent = `${res.data.length} active`;
+
             el.innerHTML = res.data.map(d => {
-                const avatar = avatarUrl(d.avatar)
-                    ? `<img src="${avatarUrl(d.avatar)}" class="card-avatar" style="object-fit:cover;">`
+                const av = avatarUrl(d.avatar);
+                const avatarHtml = av
+                    ? `<div class="card-avatar"><img src="${av}" alt="${d.driver_name}"></div>`
                     : `<div class="card-avatar">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
 
-                const eta = d.eta_minutes ? `${d.eta_minutes} min` : '';
+                const eta = (d.card_type === 'on_returning' && d.eta_minutes > 0)
+                    ? `<div class="card-eta">${d.eta_minutes}<span> min</span></div>` : '';
+
                 const dot = d.is_online ? 'online' : 'offline';
+                const statusText = d.card_type === 'available' ? t('Available')
+                    : d.card_type === 'on_delivery' ? t('On Delivery')
+                        : d.card_type === 'on_returning' ? t('On Returning')
+                            : t('offline');
 
                 let actionBtn = '';
-                if (d.card_type === 'available' || d.card_type === 'on_delivery') {
-                    actionBtn = `<button class="btn-action" onclick="openTrack(${d.driver_id}, '${d.driver_name}')">${t('track')}</button>`;
-                } else if (d.card_type === 'on_returning') {
-                    actionBtn = `<button class="btn-action">${t('order_ready')}</button>`;
+                if (d.card_type === 'on_delivery' || d.card_type === 'on_returning') {
+                    actionBtn = `<button class="btn-card btn-card-primary" onclick="openTrack(${d.driver_id}, '${d.driver_name}')">
+                    <i class="fa-solid fa-location-arrow"></i> ${t('track')}
+                </button>`;
+                } else if (d.card_type === 'available') {
+                    actionBtn = `<button class="btn-card btn-card-primary">
+                    ${('order_ready')}
+                </button>`;
                 }
 
                 return `
-                <div class="driver-card ${d.card_type}">
-                    <div class="card-top">
-                        ${avatar}
-                        <span class="card-name">
-                            <span class="status-dot ${dot}"></span>${d.driver_name}
-                        </span>
-                        ${eta ? `<span class="card-eta">${eta}</span>` : ''}
+            <div class="driver-card ${d.card_type}">
+                <div class="card-top">
+                    ${avatarHtml}
+                    <div class="card-info">
+                        <div class="card-name">
+                            <span class="status-dot ${dot}"></span>
+                            ${d.driver_name}
+                        </div>
+                        <div class="card-status-text">${statusText}</div>
                     </div>
-                    <div class="card-actions">
-                        ${actionBtn}
-                    </div>
-                </div>`;
+                    ${eta}
+                </div>
+                <hr class="card-divider">
+                <div class="card-actions">
+                    <button class="btn-card btn-card-ghost">
+                        <i class="fa-solid fa-message"></i>
+                    </button>
+                    ${actionBtn}
+                </div>
+            </div>`;
             }).join('');
         }
 
-        // ── Today's Shift ─────────────────────────────────────────
+        // // ── Today's Shift ─────────────────────────────────────────
+        // async function loadShift(day = 'today') {
+        //     document.getElementById('tab-today').classList.toggle('active', day === 'today');
+        //     document.getElementById('tab-tomorrow').classList.toggle('active', day === 'tomorrow');
+
+        //     const res = await apiCall(`/restaurant/today-driver?day=${day}`);
+        //     const el  = document.getElementById('shift-list');
+
+        //     if (!res.success || !res.data?.length) {
+        //         el.innerHTML = `<div class="state-box"><i class="fa-solid fa-calendar-xmark"></i>${t('no_shifts')}</div>`;
+        //         return;
+        //     }
+
+        //     // Group by shift
+        //     const groups = {};
+        //     res.data.forEach(d => {
+        //         if (!groups[d.shift]) groups[d.shift] = { ...d, drivers: [] };
+        //         groups[d.shift].drivers.push({ name: d.driver_name, avatar: d.avatar });
+        //     });
+
+        //     el.innerHTML = Object.values(groups).map(g => {
+        //         const icon  = g.shift === 'morning' ? 'fa-sun' : g.shift === 'afternoon' ? 'fa-cloud-sun' : 'fa-moon';
+        //         const label = g.shift === 'morning' ? t('morning') : g.shift === 'afternoon' ? t('afternoon') : t('evening');
+
+        //         const avatarsHtml = g.drivers.map(d => {
+        //             const av = avatarUrl(d.avatar);
+        //             return av
+        //                 ? `<div class="driver-avatar-item"><img src="${av}" alt="${d.name}"></div>`
+        //                 : `<div class="driver-avatar-item">${d.name.slice(0, 2).toUpperCase()}</div>`;
+        //         }).join('');
+
+        //         const names = g.drivers.map(d => d.name).join(', ');
+
+        //         return `
+        //         <div class="shift-card">
+        //             <div class="shift-card-top">
+        //                 <div class="shift-icon"><i class="fa-solid ${icon}"></i></div>
+        //                 <div>
+        //                     <div class="shift-label">${label} Shift</div>
+        //                     <div class="shift-time">
+        //                         <i class="fa-regular fa-clock"></i>
+        //                         ${g.from_time} &ndash; ${g.to_time}
+        //                     </div>
+        //                 </div>
+        //             </div>
+        //             <hr class="shift-divider">
+        //             <div style="display:flex;align-items:center;">
+        //                 <div class="driver-avatars">${avatarsHtml}</div>
+        //                 <span class="driver-names">${names}</span>
+        //             </div>
+        //             <div class="shift-restaurant">
+        //                 <i class="fa-solid fa-store"></i> ${g.restaurant_name}
+        //             </div>
+        //         </div>`;
+        //     }).join('');
+        // }
+
         async function loadShift(day = 'today') {
             document.getElementById('tab-today').classList.toggle('active', day === 'today');
             document.getElementById('tab-tomorrow').classList.toggle('active', day === 'tomorrow');
@@ -553,150 +939,141 @@
             const el = document.getElementById('shift-list');
 
             if (!res.success || !res.data?.length) {
-                el.innerHTML = `<div class="state-box">${t('no_shifts')}</div>`;
+                el.innerHTML = `<div class="state-box"><i class="fa-solid fa-calendar-xmark"></i>${t('no_shifts')}</div>`;
                 return;
             }
 
             el.innerHTML = res.data.map(d => {
-                const label = d.shift === 'morning' ? t('morning') : t('evening');
-                const shiftIcon = d.shift === 'morning' ? '☀️' : '🌙';
-                const avatar = avatarUrl(d.avatar)
-                    ? `<img src="${avatarUrl(d.avatar)}" class="shift-avatar-img">`
-                    : `<div class="shift-avatar-initials">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
+                const icon = d.shift === 'morning' ? 'fa-sun' : d.shift === 'afternoon' ? 'fa-cloud-sun' : 'fa-moon';
+                const label = d.shift === 'morning' ? t('morning') : d.shift === 'afternoon' ? t('afternoon') : t('evening');
+
+                const av = avatarUrl(d.avatar);
+                const avatarHtml = av
+                    ? `<div class="driver-avatar-item"><img src="${av}" alt="${d.driver_name}"></div>`
+                    : `<div class="driver-avatar-item">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
 
                 return `
                 <div class="shift-card">
                     <div class="shift-card-top">
-                        ${avatar}
+                        ${avatarHtml}
                         <div>
                             <div class="shift-label">${d.driver_name}</div>
-                            <div class="shift-time">🕐 ${d.from_time} – ${d.to_time} &nbsp;|&nbsp; ${shiftIcon} ${label}</div>
+                            <div class="shift-time">
+                                <i class="fa-regular fa-clock"></i>
+                                ${d.from_time} &ndash; ${d.to_time} &nbsp;|&nbsp; <i class="fa-solid ${icon}"></i> ${label}
+                            </div>
                         </div>
                     </div>
-                    <div class="shift-drivers">🏪 ${d.restaurant_name}</div>
+                    <div class="shift-restaurant">
+                        <i class="fa-solid fa-store"></i> ${d.restaurant_name}
+                    </div>
                 </div>`;
             }).join('');
         }
 
         // ── Track Map ─────────────────────────────────────────────
-        let trackMap = null;
-        let driverMarker = null;
-        let restaurantMarker = null;
-        let trackInterval = null;
-        let currentDriverId = null;
+        let trackMap = null, driverMarker = null, restaurantMarker = null;
+        let routeLine = null, trackInterval = null, currentDriverId = null;
 
         const driverIcon = L.divIcon({
-            html: `<div style="background:#A4243B;width:36px;height:36px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;">🚗</div>`,
-            className: '',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
+            html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;"><i class="fa-solid fa-car-side"></i></div>`,
+            className: '', iconSize: [38, 38], iconAnchor: [19, 19],
+        });
+        const restaurantIcon = L.divIcon({
+            html: `<div style="background:#10b981;width:38px;height:38px;border-radius:10px;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;"><i class="fa-solid fa-store"></i></div>`,
+            className: '', iconSize: [38, 38], iconAnchor: [19, 19],
         });
 
-        const restaurantIcon = L.divIcon({
-            html: `<div style="background:#1D9E75;width:36px;height:36px;border-radius:10px;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;font-size:16px;">🍕</div>`,
-            className: '',
-            iconSize: [36, 36],
-            iconAnchor: [18, 18],
-        });
+        async function drawRoute(dLat, dLng, rLat, rLng) {
+            try {
+                const dist = trackMap.distance([dLat, dLng], [rLat, rLng]);
+                if (dist < 100) {
+                    if (routeLine) trackMap.removeLayer(routeLine);
+                    routeLine = L.polyline([[dLat, dLng], [rLat, rLng]], { color: '#10b981', weight: 3, dashArray: '6,8' }).addTo(trackMap);
+                    return;
+                }
+                const res = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
+                    method: 'POST',
+                    headers: { 'Authorization': ORS_KEY, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ coordinates: [[dLng, dLat], [rLng, rLat]] })
+                });
+                const data = await res.json();
+                if (!data.features?.[0]) return;
+                const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                if (routeLine) trackMap.removeLayer(routeLine);
+                routeLine = L.polyline(coords, { color: '#10b981', weight: 4, opacity: 0.85 }).addTo(trackMap);
+            } catch (err) { console.error('Route error:', err); }
+        }
 
         async function openTrack(driverId, driverName) {
             currentDriverId = driverId;
-            document.getElementById('track-title').textContent = '📍 ' + driverName;
+            document.getElementById('track-title').textContent = driverName;
             document.getElementById('track-overlay').classList.add('open');
-
             if (!trackMap) {
                 trackMap = L.map('track-map').setView([50.85, 4.35], 12);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap'
-                }).addTo(trackMap);
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(trackMap);
             }
-
             await updateTrackLocation();
-
             locationChannel = pusher.subscribe(`driver.${driverId}`);
-            locationChannel.bind('location.updated', (data) => {
-                updateMarkersOnly(
-                    parseFloat(data.latitude),
-                    parseFloat(data.longitude)
-                );
+            locationChannel.bind('location.updated', (raw) => {
+                updateMarkersOnly(parseFloat(raw.data.latitude), parseFloat(raw.data.longitude));
             });
-
             trackInterval = setInterval(updateTrackLocation, 30000);
         }
 
         async function updateTrackLocation() {
             const res = await apiCall(`/driver/${currentDriverId}/location`);
             if (!res.success) return;
-
             const { driver, restaurant } = res.data;
-            const dLat = parseFloat(driver.latitude);
-            const dLng = parseFloat(driver.longitude);
-            const rLat = parseFloat(restaurant.latitude);
-            const rLng = parseFloat(restaurant.longitude);
+            const dLat = parseFloat(driver.latitude), dLng = parseFloat(driver.longitude);
+            const rLat = parseFloat(restaurant.latitude), rLng = parseFloat(restaurant.longitude);
 
-            // Driver marker
-            if (driverMarker) {
-                driverMarker.setLatLng([dLat, dLng]);
-            } else {
-                driverMarker = L.marker([dLat, dLng], { icon: driverIcon })
-                    .addTo(trackMap)
-                    .bindPopup('🚗 Driver');
-            }
+            if (driverMarker) driverMarker.setLatLng([dLat, dLng]);
+            else driverMarker = L.marker([dLat, dLng], { icon: driverIcon }).addTo(trackMap).bindPopup(driver.name || 'Driver');
 
-            // Restaurant marker
             if (restaurantMarker) {
                 restaurantMarker.setLatLng([rLat, rLng]);
             } else {
-                restaurantMarker = L.marker([rLat, rLng], { icon: restaurantIcon })
-                    .addTo(trackMap)
-                    .bindPopup('🍕 ' + restaurantName);
+                const logoUrl = restaurantLogo ? avatarUrl(restaurantLogo) : null;
+                const dynIcon = L.divIcon({
+                    html: logoUrl
+                        ? `<div style="width:42px;height:42px;border-radius:10px;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);overflow:hidden;"><img src="${logoUrl}" style="width:100%;height:100%;object-fit:cover;"></div>`
+                        : `<div style="background:#10b981;width:38px;height:38px;border-radius:10px;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;"><i class="fa-solid fa-store"></i></div>`,
+                    className: '', iconSize: [42, 42], iconAnchor: [21, 21],
+                });
+                restaurantMarker = L.marker([rLat, rLng], { icon: dynIcon }).addTo(trackMap).bindPopup(restaurantName);
             }
 
-            trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [40, 40] });
-
-            // Update footer
-            const now = new Date().toLocaleTimeString();
-            document.getElementById('track-updated').textContent = 'Last updated: ' + now;
-
+            await drawRoute(dLat, dLng, rLat, rLng);
+            trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [50, 50] });
+            document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
             setTimeout(() => trackMap.invalidateSize(), 100);
+        }
+
+        function updateMarkersOnly(dLat, dLng) {
+            if (!driverMarker || !trackMap) return;
+            driverMarker.setLatLng([dLat, dLng]);
+            if (restaurantMarker) {
+                const r = restaurantMarker.getLatLng();
+                drawRoute(dLat, dLng, r.lat, r.lng);
+            }
+            document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
         }
 
         function closeTrackModal() {
             document.getElementById('track-overlay').classList.remove('open');
-            clearInterval(trackInterval);
-            trackInterval = null;
-            currentDriverId = null;
-
-            if (locationChannel) {
-                locationChannel.unbind_all();
-                pusher.unsubscribe(locationChannel.name);
-                locationChannel = null;
-            }
-
+            clearInterval(trackInterval); trackInterval = null; currentDriverId = null;
+            if (locationChannel) { locationChannel.unbind_all(); pusher.unsubscribe(locationChannel.name); locationChannel = null; }
+            if (routeLine) { trackMap.removeLayer(routeLine); routeLine = null; }
             if (driverMarker) { trackMap.removeLayer(driverMarker); driverMarker = null; }
             if (restaurantMarker) { trackMap.removeLayer(restaurantMarker); restaurantMarker = null; }
         }
+        function closeTrack(e) { if (e.target === document.getElementById('track-overlay')) closeTrackModal(); }
 
-        // ── Pusher ────────────────────────────────────────────────
+        // ── Init ──────────────────────────────────────────────────
         loadLiveDrivers();
         loadShift('today');
-
-        const pusher = new Pusher('0f20a9108f3ebee59109', {
-            cluster: 'mt1',
-            forceTLS: true,
-        });
-
-        pusher.subscribe('restaurant.drivers')
-            .bind('driver.status.updated', () => {
-                loadLiveDrivers();
-            });
-
-        const locationChannel = pusher.subscribe(`driver.${driverId}`);
-        locationChannel.bind('location.updated', (data) => {
-            updateMarkers(data.latitude, data.longitude);
-        });
-
-
+        setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 60000);
     </script>
 </body>
 
