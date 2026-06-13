@@ -564,6 +564,12 @@
                     });
 
                     if (response.success && response.data?.token) {
+                        if (response.data?.active_role !== 'owner') {
+                            showError('Access denied. Owner account required.');
+                            btnGoogle.disabled = false;
+                            btnGoogle.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Continue with Google`;
+                            return;
+                        }
                         saveAndRedirect(response.data);
                     } else {
                         showError(response.message || 'Google login failed.');
