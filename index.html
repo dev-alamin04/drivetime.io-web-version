@@ -548,31 +548,9 @@
         }
 
         function googleLogin() {
-            if (typeof google === 'undefined') return;
-
-            const client = google.accounts.oauth2.initTokenClient({
-                client_id: '210681825022-his7h6b9ha7mfc9afgn6fr655q989i4v.apps.googleusercontent.com',
-                scope: 'email profile',
-                callback: async (tokenResponse) => {
-                    const btnGoogle = document.getElementById('btn-google');
-                    btnGoogle.disabled = true;
-                    btnGoogle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Signing in...`;
-
-                    const response = await apiCall('/auth/social-login', 'POST', {
-                        provider: 'google',
-                        provider_id: tokenResponse.access_token,
-                    });
-
-                    if (response.success && response.data?.token) {
-                        saveAndRedirect(response.data);
-                    } else {
-                        showError(response.message || 'Google login failed.');
-                        btnGoogle.disabled = false;
-                        btnGoogle.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Continue with Google`;
-                    }
-                },
-            });
-            client.requestAccessToken();
+            if (typeof google !== 'undefined') {
+                google.accounts.id.prompt();
+            }
         }
 
         window.addEventListener('load', () => {
