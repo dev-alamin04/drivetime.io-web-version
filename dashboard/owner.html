@@ -236,19 +236,19 @@
         }
 
         .driver-card.available {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: #28987F;
         }
 
         .driver-card.on_delivery {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            background: #A4243B;
         }
 
         .driver-card.on_returning {
-            background: linear-gradient(135deg, #f97316, #c2410c);
+            background: #BD632F;
         }
 
         .driver-card.offline {
-            background: linear-gradient(135deg, #64748b, #475569);
+            background: #64748b;
         }
 
         .card-top {
@@ -402,7 +402,7 @@
 
         .tab-pill.active {
             background: var(--text-primary);
-            color: #fff;
+            color: #331818;
             border-color: var(--text-primary);
         }
 
@@ -842,7 +842,7 @@
                 let actionBtn = '';
                 if (d.card_type === 'on_delivery' || d.card_type === 'on_returning') {
                     actionBtn = `<button class="btn-card btn-card-primary" onclick="openTrack(${d.driver_id}, '${d.driver_name}')">
-                    <i class="fa-solid fa-location-arrow"></i> ${t('track')}
+                    ${t('track')}
                 </button>`;
                 } else if (d.card_type === 'available') {
                     actionBtn = `<button class="btn-card btn-card-primary">
