@@ -548,9 +548,31 @@
         }
 
         function googleLogin() {
-            if (typeof google !== 'undefined') {
-                google.accounts.id.prompt();
-            }
+            if (typeof google === 'undefined') return;
+
+            const client = google.accounts.oauth2.initTokenClient({
+                client_id: '885343649860-g9s417nuao9htjk95pmmc0gmeeqli503.apps.googleusercontent.com',
+                scope: 'email profile',
+                callback: async (tokenResponse) => {
+                    const btnGoogle = document.getElementById('btn-google');
+                    btnGoogle.disabled = true;
+                    btnGoogle.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Signing in...`;
+
+                    const response = await apiCall('/auth/social-login', 'POST', {
+                        provider: 'google',
+                        provider_id: tokenResponse.access_token,
+                    });
+
+                    if (response.success && response.data?.token) {
+                        saveAndRedirect(response.data);
+                    } else {
+                        showError(response.message || 'Google login failed.');
+                        btnGoogle.disabled = false;
+                        btnGoogle.innerHTML = `<img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"> Continue with Google`;
+                    }
+                },
+            });
+            client.requestAccessToken();
         }
 
         window.addEventListener('load', () => {
