@@ -552,7 +552,7 @@
 
             const client = google.accounts.oauth2.initTokenClient({
                 client_id: '885343649860-g9s417nuao9htjk95pmmc0gmeeqli503.apps.googleusercontent.com',
-                scope: 'email profile',
+                scope: 'email profile openid',
                 callback: async (tokenResponse) => {
                     const btnGoogle = document.getElementById('btn-google');
                     btnGoogle.disabled = true;
