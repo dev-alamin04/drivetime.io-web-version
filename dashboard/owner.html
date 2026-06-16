@@ -849,7 +849,7 @@
                         <i class="fa-solid fa-map-location-dot"></i> ${t('track')}
                     </button>`;
                 } else if (d.card_type === 'available') {
-                    actionBtn = `<button class="btn-card btn-card-primary">
+                    actionBtn = `<button class="btn-card btn-card-primary" onclick="notifyDriver(${d.driver_id}, this)">
                         <i class="fa-solid fa-bell"></i> ${t('order_ready')}
                     </button>`;
                 }
@@ -1019,6 +1019,28 @@
             });
             trackInterval = setInterval(updateTrackLocation, 30000);
         }
+
+        async function notifyDriver(driverId, btn) {
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending...`;
+
+            const res = await apiCall(`/restaurant/notify-driver/${driverId}`, 'POST');
+
+            if (res.success) {
+                btn.innerHTML = `<i class="fa-solid fa-check"></i> Notified`;
+                btn.style.background = 'rgba(255,255,255,0.5)';
+                setTimeout(() => {
+                    btn.disabled = false;
+                    btn.style.background = '';
+                    btn.innerHTML = `<i class="fa-solid fa-bell"></i> ${t('order_ready')}`;
+                }, 3000);
+            } else {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-bell"></i> ${t('order_ready')}`;
+                alert(res.message || 'Failed to notify driver');
+            }
+        }
+
 
         async function updateTrackLocation() {
             const res = await apiCall(`/driver/${currentDriverId}/location`);
