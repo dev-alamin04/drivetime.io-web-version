@@ -838,9 +838,9 @@
                     ? `<div class="card-eta">${d.eta_minutes}<span> min</span></div>` : '';
 
                 const dot = d.is_online ? 'online' : 'offline';
-                const statusText = d.card_type === 'available' ? t('Available')
-                    : d.card_type === 'on_delivery' ? t('On Delivery')
-                        : d.card_type === 'on_returning' ? t('On Returning')
+                const statusText = d.card_type === 'available' ? t('available')
+                    : d.card_type === 'on_delivery' ? t('on_delivery')
+                        : d.card_type === 'on_returning' ? t('on_returning')
                             : t('offline');
 
                 let actionBtn = '';

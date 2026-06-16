@@ -8,7 +8,6 @@ const translations = {
         password_placeholder:'Enter your password',
         sign_in_btn:         'Sign in',
         signing_in_btn:      'Logging in...',
-        afternoon: 'Afternoon',
 
         live_drivers:        'Live driver status',
         todays_shift:        "Today's Shift",
@@ -21,7 +20,12 @@ const translations = {
         track:               'Track',
         order_ready:         'Order ready',
         morning:             'Morning',
+        afternoon:           'Afternoon',
         evening:             'Evening',
+        available:           'Available',
+        on_delivery:         'On Delivery',
+        on_returning:        'Returning',
+        offline:             'Offline',
     },
     fr: {
         welcome_back:        'Bon retour',
@@ -32,7 +36,6 @@ const translations = {
         password_placeholder:'Entrez votre mot de passe',
         sign_in_btn:         'Se connecter',
         signing_in_btn:      'Connexion...',
-        afternoon: 'Après-midi',
 
         live_drivers:        'Statut des livreurs',
         todays_shift:        'Quart de travail',
@@ -45,7 +48,12 @@ const translations = {
         track:               'Suivre',
         order_ready:         'Commande prête',
         morning:             'Matin',
+        afternoon:           'Après-midi',
         evening:             'Soir',
+        available:           'Disponible',
+        on_delivery:         'En livraison',
+        on_returning:        'En retour',
+        offline:             'Hors ligne',
     },
     de: {
         welcome_back:        'Willkommen zurück',
@@ -57,7 +65,6 @@ const translations = {
         sign_in_btn:         'Anmelden',
         signing_in_btn:      'Anmeldung...',
 
-        afternoon: 'Nachmittag',
         live_drivers:        'Fahrerstatus',
         todays_shift:        'Heutige Schicht',
         today:               'Heute',
@@ -69,7 +76,12 @@ const translations = {
         track:               'Verfolgen',
         order_ready:         'Bestellung fertig',
         morning:             'Morgen',
+        afternoon:           'Nachmittag',
         evening:             'Abend',
+        available:           'Verfügbar',
+        on_delivery:         'In Lieferung',
+        on_returning:        'Auf dem Rückweg',
+        offline:             'Offline',
     },
     nl: {
         welcome_back:        'Welkom terug',
@@ -80,7 +92,6 @@ const translations = {
         password_placeholder:'Voer uw wachtwoord in',
         sign_in_btn:         'Inloggen',
         signing_in_btn:      'Inloggen...',
-        afternoon: 'Middag',
 
         live_drivers:        'Bezorgerstatus',
         todays_shift:        'Dienst vandaag',
@@ -93,7 +104,12 @@ const translations = {
         track:               'Volgen',
         order_ready:         'Bestelling klaar',
         morning:             'Ochtend',
+        afternoon:           'Middag',
         evening:             'Avond',
+        available:           'Beschikbaar',
+        on_delivery:         'Onderweg',
+        on_returning:        'Op terugweg',
+        offline:             'Offline',
     },
 };
 
