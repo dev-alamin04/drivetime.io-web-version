@@ -6,8 +6,8 @@ const API_BASE = IS_LOCAL
     : 'https://ibrahim.thewarriors.team/api';
 
 const STORAGE_BASE = IS_LOCAL
-    ? 'https://ibrahim.thewarriors.team'
-    : 'https://ibrahim.thewarriors.team';
+    ? 'https://ibrahim.thewarriors.team/'
+    : 'https://ibrahim.thewarriors.team/';
     
 function avatarUrl(path) {
     if (!path) return null;
