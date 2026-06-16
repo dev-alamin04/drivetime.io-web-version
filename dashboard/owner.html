@@ -1024,7 +1024,7 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Sending...`;
 
-            const res = await apiCall(`/restaurant/notify-driver/${driverId}`, 'POST');
+            const res = await apiCall(`/notify-driver/${driverId}`, 'POST');
 
             if (res.success) {
                 btn.innerHTML = `<i class="fa-solid fa-check"></i> Notified`;
