@@ -8,6 +8,7 @@ const translations = {
         password_placeholder:'Enter your password',
         sign_in_btn:         'Sign in',
         signing_in_btn:      'Logging in...',
+        afternoon: 'Afternoon',
 
         live_drivers:        'Live driver status',
         todays_shift:        "Today's Shift",
@@ -31,6 +32,7 @@ const translations = {
         password_placeholder:'Entrez votre mot de passe',
         sign_in_btn:         'Se connecter',
         signing_in_btn:      'Connexion...',
+        afternoon: 'Après-midi',
 
         live_drivers:        'Statut des livreurs',
         todays_shift:        'Quart de travail',
@@ -55,6 +57,7 @@ const translations = {
         sign_in_btn:         'Anmelden',
         signing_in_btn:      'Anmeldung...',
 
+        afternoon: 'Nachmittag',
         live_drivers:        'Fahrerstatus',
         todays_shift:        'Heutige Schicht',
         today:               'Heute',
@@ -77,6 +80,7 @@ const translations = {
         password_placeholder:'Voer uw wachtwoord in',
         sign_in_btn:         'Inloggen',
         signing_in_btn:      'Inloggen...',
+        afternoon: 'Middag',
 
         live_drivers:        'Bezorgerstatus',
         todays_shift:        'Dienst vandaag',
