@@ -197,7 +197,7 @@
             background: #28987F;
             /* color: var(--brand); */
             font-size: 20px;
-            color:white;
+            color: white;
             font-weight: 600;
             padding: 3px 9px;
             border-radius: 20px;
@@ -317,7 +317,7 @@
         }
 
         .card-eta {
-            font-size: 22px;
+            font-size: 40px;
             font-weight: 700;
             opacity: 0.95;
             letter-spacing: -0.5px;
@@ -734,9 +734,11 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
     <script src="../translations.js"></script>
     <script>
-        const API_BASE = 'https://ibrahim.thewarriors.team/api';
-        const STORAGE_BASE = 'https://ibrahim.thewarriors.team/';
+        const API_BASE = 'https://admin.drivetime.io/api';
+        const STORAGE_BASE = 'https://admin.drivetime.io/';
         const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJiNWMwYTUxNWJjYTRjYjE5NzEyYWY2YmUzOTRhZmZiIiwiaCI6Im11cm11cjY0In0=';
+
+        const notifiedAvailable = new Set();
 
         // ── Theme ─────────────────────────────────────────────────
         function toggleTheme() {
@@ -750,6 +752,18 @@
         document.getElementById('theme-icon').className = savedTheme === 'dark' ? 'fa-solid fa-sun' : 'fa-solid fa-moon';
 
         // ── Helpers ───────────────────────────────────────────────
+
+        function playReturningSound() {
+            const audio = new Audio('../alert.mp3');
+
+            audio.onended = () => {
+                audio.onended = null;
+                audio.currentTime = 0;
+                audio.play();
+            };
+
+            audio.play();
+        }
         function avatarUrl(path) {
             if (!path) return null;
             if (path.startsWith('http')) return path;
@@ -846,13 +860,23 @@
 
                 let actionBtn = '';
                 if (d.card_type === 'on_delivery' || d.card_type === 'on_returning') {
+
+                    if (d.card_type === 'on_returning') {
+                        playReturningSound();
+                    }
+
                     actionBtn = `<button class="btn-card btn-card-primary" onclick="openTrack(${d.driver_id}, '${d.driver_name}')">
                         <i class="fa-solid fa-map-location-dot"></i> ${t('track')}
                     </button>`;
                 } else if (d.card_type === 'available') {
+                    if (!notifiedAvailable.has(d.driver_id)) {
+                        notifiedAvailable.add(d.driver_id);
+                    }
                     actionBtn = `<button class="btn-card btn-card-primary" onclick="notifyDriver(${d.driver_id}, this)">
-                        <i class="fa-solid fa-bell"></i> ${t('order_ready')}
-                    </button>`;
+        <i class="fa-solid fa-bell"></i> ${t('order_ready')}
+    </button>`;
+                } else {
+                    notifiedAvailable.delete(d.driver_id);
                 }
 
                 return `
@@ -1018,7 +1042,7 @@
             locationChannel.bind('location.updated', (raw) => {
                 updateMarkersOnly(parseFloat(raw.data.latitude), parseFloat(raw.data.longitude));
             });
-            trackInterval = setInterval(updateTrackLocation, 30000);
+            trackInterval = setInterval(updateTrackLocation, 2000);
         }
 
         async function notifyDriver(driverId, btn) {
@@ -1095,7 +1119,7 @@
         // ── Init ──────────────────────────────────────────────────
         loadLiveDrivers();
         loadShift('today');
-        setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 60000);
+        setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 10000);
     </script>
 </body>
 
