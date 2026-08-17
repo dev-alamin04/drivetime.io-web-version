@@ -649,8 +649,87 @@
         }
 
         #track-map {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* ── Map ETA Overlay ── */
+        .map-wrapper {
+            position: relative;
             flex: 1;
             min-height: 0;
+        }
+
+        #map-eta-overlay {
+            display: none;
+            position: absolute;
+            bottom: 20px;
+            left: 16px;
+            z-index: 900;
+            background: rgba(15, 23, 42, 0.88);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 12px 16px;
+            color: #fff;
+            min-width: 170px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+            animation: fadeInUp 0.3s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .map-eta-label {
+            font-size: 10px;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 6px;
+        }
+
+        .map-eta-time {
+            font-size: 28px;
+            font-weight: 700;
+            line-height: 1;
+            color: #10b981;
+            letter-spacing: -0.5px;
+        }
+
+        .map-eta-time span {
+            font-size: 13px;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .map-eta-divider {
+            border: none;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin: 8px 0;
+        }
+
+        .map-eta-dist {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.65);
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .map-eta-dist i {
+            color: #10b981;
+            font-size: 11px;
         }
     </style>
 </head>
@@ -721,10 +800,27 @@
                     <i class="fa-solid fa-xmark"></i>
                 </button>
             </div>
-            <div id="track-map"></div>
+            <div class="map-wrapper">
+                <div id="track-map"></div>
+                <div id="map-eta-overlay">
+                    <div class="map-eta-label"><i class="fa-regular fa-clock"></i>&nbsp; Estimated Arrival</div>
+                    <div class="map-eta-time" id="map-eta-time">—<span> min</span></div>
+                    <hr class="map-eta-divider">
+                    <div class="map-eta-dist">
+                        <i class="fa-solid fa-road"></i>
+                        <span id="map-eta-dist">—</span>
+                    </div>
+                </div>
+            </div>
             <div class="track-modal-footer">
                 <span class="track-dot"></span>
                 <span id="track-updated">Connecting...</span>
+                <span style="margin-left:auto;display:flex;gap:14px;">
+                    <span id="track-distance" style="display:none;"><i class="fa-solid fa-road"
+                            style="color:var(--brand);"></i> <span id="track-dist-val"></span></span>
+                    <span id="track-eta-info" style="display:none;"><i class="fa-regular fa-clock"
+                            style="color:var(--brand);"></i> <span id="track-eta-val"></span></span>
+                </span>
             </div>
         </div>
     </div>
@@ -734,9 +830,9 @@
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.min.js"></script>
     <script src="../translations.js"></script>
     <script>
-        const API_BASE = 'https://admin.drivetime.io/api';
-        const STORAGE_BASE = 'https://admin.drivetime.io/';
-        const ORS_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6IjJiNWMwYTUxNWJjYTRjYjE5NzEyYWY2YmUzOTRhZmZiIiwiaCI6Im11cm11cjY0In0=';
+        const API_BASE = 'https://ibrahim.thewarriors.team/api';
+        const STORAGE_BASE = 'https://ibrahim.thewarriors.team/';
+
 
         const notifiedAvailable = new Set();
 
@@ -998,6 +1094,7 @@
         // ── Track Map ─────────────────────────────────────────────
         let trackMap = null, driverMarker = null, restaurantMarker = null;
         let routeLine = null, trackInterval = null, currentDriverId = null;
+        let fullPolylineCoords = null; // Full decoded route stored for live trimming
 
         const driverIcon = L.divIcon({
             html: `<div style="background:#ef4444;width:38px;height:38px;border-radius:50%;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;"><i class="fa-solid fa-car-side"></i></div>`,
@@ -1008,25 +1105,52 @@
             className: '', iconSize: [38, 38], iconAnchor: [19, 19],
         });
 
-        async function drawRoute(dLat, dLng, rLat, rLng) {
-            try {
-                const dist = trackMap.distance([dLat, dLng], [rLat, rLng]);
-                if (dist < 100) {
-                    if (routeLine) trackMap.removeLayer(routeLine);
-                    routeLine = L.polyline([[dLat, dLng], [rLat, rLng]], { color: '#10b981', weight: 3, dashArray: '6,8' }).addTo(trackMap);
-                    return;
-                }
-                const res = await fetch('https://api.openrouteservice.org/v2/directions/driving-car/geojson', {
-                    method: 'POST',
-                    headers: { 'Authorization': ORS_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ coordinates: [[dLng, dLat], [rLng, rLat]] })
-                });
-                const data = await res.json();
-                if (!data.features?.[0]) return;
-                const coords = data.features[0].geometry.coordinates.map(c => [c[1], c[0]]);
-                if (routeLine) trackMap.removeLayer(routeLine);
-                routeLine = L.polyline(coords, { color: '#10b981', weight: 4, opacity: 0.85 }).addTo(trackMap);
-            } catch (err) { console.error('Route error:', err); }
+        // Decode Google encoded polyline → [[lat,lng], ...]
+        function decodePolyline(encoded) {
+            const coords = [];
+            let index = 0, lat = 0, lng = 0;
+            while (index < encoded.length) {
+                let b, shift = 0, result = 0;
+                do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                lat += (result & 1) ? ~(result >> 1) : (result >> 1);
+                shift = 0; result = 0;
+                do { b = encoded.charCodeAt(index++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+                lng += (result & 1) ? ~(result >> 1) : (result >> 1);
+                coords.push([lat / 1e5, lng / 1e5]);
+            }
+            return coords;
+        }
+
+        function drawPolyline(encodedPolyline) {
+            if (!encodedPolyline) return;
+            fullPolylineCoords = decodePolyline(encodedPolyline); // store full route
+            if (routeLine) trackMap.removeLayer(routeLine);
+            routeLine = L.polyline(fullPolylineCoords, { color: '#10b981', weight: 4, opacity: 0.88 }).addTo(trackMap);
+        }
+
+        // Find the index of the polyline point closest to the driver's position
+        function nearestPolylineIndex(dLat, dLng) {
+            if (!fullPolylineCoords || fullPolylineCoords.length === 0) return 0;
+            let minDist = Infinity, minIdx = 0;
+            for (let i = 0; i < fullPolylineCoords.length; i++) {
+                const [pLat, pLng] = fullPolylineCoords[i];
+                // Squared Euclidean distance (fast, no need for exact metres here)
+                const d = (pLat - dLat) ** 2 + (pLng - dLng) ** 2;
+                if (d < minDist) { minDist = d; minIdx = i; }
+            }
+            return minIdx;
+        }
+
+        // Trim the drawn route to start from driver's current position onward
+        function trimPolylineFromDriver(dLat, dLng) {
+            if (!fullPolylineCoords || fullPolylineCoords.length < 2 || !trackMap) return;
+            const idx = nearestPolylineIndex(dLat, dLng);
+            // Prepend the driver's EXACT GPS position as the first point
+            // so the line always starts right at the car icon — no gap
+            const remaining = [[dLat, dLng], ...fullPolylineCoords.slice(idx + 1)];
+            if (remaining.length < 2) return;
+            if (routeLine) trackMap.removeLayer(routeLine);
+            routeLine = L.polyline(remaining, { color: '#10b981', weight: 4, opacity: 0.88 }).addTo(trackMap);
         }
 
         async function openTrack(driverId, driverName) {
@@ -1042,7 +1166,7 @@
             locationChannel.bind('location.updated', (raw) => {
                 updateMarkersOnly(parseFloat(raw.data.latitude), parseFloat(raw.data.longitude));
             });
-            trackInterval = setInterval(updateTrackLocation, 2000);
+            trackInterval = setInterval(updateTrackLocation, 10000);
         }
 
         async function notifyDriver(driverId, btn) {
@@ -1068,9 +1192,9 @@
 
 
         async function updateTrackLocation() {
-            const res = await apiCall(`/driver/${currentDriverId}/location`);
+            const res = await apiCall(`/driver/${currentDriverId}/route`);
             if (!res.success) return;
-            const { driver, restaurant } = res.data;
+            const { driver, restaurant, route } = res.data;
             const dLat = parseFloat(driver.latitude), dLng = parseFloat(driver.longitude);
             const rLat = parseFloat(restaurant.latitude), rLng = parseFloat(restaurant.longitude);
 
@@ -1087,22 +1211,64 @@
                         : `<div style="background:#10b981;width:38px;height:38px;border-radius:10px;border:3px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,0.25);display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;"><i class="fa-solid fa-store"></i></div>`,
                     className: '', iconSize: [42, 42], iconAnchor: [21, 21],
                 });
-                restaurantMarker = L.marker([rLat, rLng], { icon: dynIcon }).addTo(trackMap).bindPopup(restaurantName);
+                restaurantMarker = L.marker([rLat, rLng], { icon: dynIcon }).addTo(trackMap).bindPopup(restaurant.name || restaurantName);
             }
 
-            await drawRoute(dLat, dLng, rLat, rLng);
+            // Draw full polyline then immediately trim to driver's current position
+            if (route?.polyline) {
+                drawPolyline(route.polyline);       // stores full coords + draws
+                trimPolylineFromDriver(dLat, dLng); // cuts off already-traveled part
+            }
+
             trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [50, 50] });
             document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
+            // Show distance & ETA in footer
+            if (route?.distance_metres) {
+                const km = (route.distance_metres / 1000).toFixed(1);
+                document.getElementById('track-dist-val').textContent = km + ' km';
+                document.getElementById('track-distance').style.display = 'inline-flex';
+                document.getElementById('track-distance').style.alignItems = 'center';
+                document.getElementById('track-distance').style.gap = '5px';
+            }
+            if (route?.duration_seconds) {
+                const mins = Math.round(route.duration_seconds / 60);
+                const h = Math.floor(mins / 60), m = mins % 60;
+                const etaStr = h > 0 ? `${h}h ${m}m` : `${m} min`;
+                document.getElementById('track-eta-val').textContent = etaStr;
+                document.getElementById('track-eta-info').style.display = 'inline-flex';
+                document.getElementById('track-eta-info').style.alignItems = 'center';
+                document.getElementById('track-eta-info').style.gap = '5px';
+            }
+
+            // ── Map ETA overlay ──
+            const overlay = document.getElementById('map-eta-overlay');
+            if (route?.duration_seconds || route?.distance_metres) {
+                overlay.style.display = 'block';
+                if (route?.duration_seconds) {
+                    const totalMins = Math.round(route.duration_seconds / 60);
+                    const h = Math.floor(totalMins / 60), m = totalMins % 60;
+                    const timeEl = document.getElementById('map-eta-time');
+                    if (h > 0) {
+                        timeEl.innerHTML = `${h}<span>h</span> ${m}<span> min</span>`;
+                    } else {
+                        timeEl.innerHTML = `${m}<span> min</span>`;
+                    }
+                }
+                if (route?.distance_metres) {
+                    const km = (route.distance_metres / 1000).toFixed(1);
+                    document.getElementById('map-eta-dist').textContent = km + ' km remaining';
+                }
+            }
+
             setTimeout(() => trackMap.invalidateSize(), 100);
         }
 
         function updateMarkersOnly(dLat, dLng) {
             if (!driverMarker || !trackMap) return;
             driverMarker.setLatLng([dLat, dLng]);
-            if (restaurantMarker) {
-                const r = restaurantMarker.getLatLng();
-                drawRoute(dLat, dLng, r.lat, r.lng);
-            }
+            // Trim the cached polyline to show only the remaining route
+            trimPolylineFromDriver(dLat, dLng);
             document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
         }
 
@@ -1113,13 +1279,18 @@
             if (routeLine) { trackMap.removeLayer(routeLine); routeLine = null; }
             if (driverMarker) { trackMap.removeLayer(driverMarker); driverMarker = null; }
             if (restaurantMarker) { trackMap.removeLayer(restaurantMarker); restaurantMarker = null; }
+            fullPolylineCoords = null; // clear stored route
+            // Reset footer stats & map overlay
+            document.getElementById('track-distance').style.display = 'none';
+            document.getElementById('track-eta-info').style.display = 'none';
+            document.getElementById('map-eta-overlay').style.display = 'none';
         }
         function closeTrack(e) { if (e.target === document.getElementById('track-overlay')) closeTrackModal(); }
 
         // ── Init ──────────────────────────────────────────────────
         loadLiveDrivers();
         loadShift('today');
-        setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 10000);
+        setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 10000000);
     </script>
 </body>
 
