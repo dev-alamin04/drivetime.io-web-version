@@ -945,8 +945,15 @@
                     ? `<div class="card-avatar"><img src="${av}" alt="${d.driver_name}"></div>`
                     : `<div class="card-avatar">${d.driver_name.slice(0, 2).toUpperCase()}</div>`;
 
-                const eta = (d.card_type === 'on_returning' && d.eta_minutes > 0)
-                    ? `<div class="card-eta">${d.eta_minutes}<span> min</span></div>` : '';
+                let eta = '';
+                const totalSecs = parseInt(d.eta_seconds || d.eta_minutes || 0);
+                if (d.card_type === 'on_returning' && totalSecs > 0) {
+                    const m = Math.floor(totalSecs / 60);
+                    const s = totalSecs % 60;
+                    const mm = m.toString().padStart(2, '0');
+                    const ss = s.toString().padStart(2, '0');
+                    eta = `<div class="card-eta live-eta" data-eta-seconds="${totalSecs}">${mm}:${ss}</div>`;
+                }
 
                 const dot = d.is_online ? 'online' : 'offline';
                 const statusText = d.card_type === 'available' ? t('available')
@@ -1161,12 +1168,12 @@
                 trackMap = L.map('track-map').setView([50.85, 4.35], 12);
                 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '© OpenStreetMap' }).addTo(trackMap);
             }
-            await updateTrackLocation();
+            await updateTrackLocation(true);
             locationChannel = pusher.subscribe(`driver.${driverId}`);
             locationChannel.bind('location.updated', (raw) => {
                 updateMarkersOnly(parseFloat(raw.data.latitude), parseFloat(raw.data.longitude));
             });
-            trackInterval = setInterval(updateTrackLocation, 10000);
+            trackInterval = setInterval(() => updateTrackLocation(false), 10000);
         }
 
         async function notifyDriver(driverId, btn) {
@@ -1191,7 +1198,7 @@
         }
 
 
-        async function updateTrackLocation() {
+        async function updateTrackLocation(isInitial = false) {
             const res = await apiCall(`/driver/${currentDriverId}/route`);
             if (!res.success) return;
             const { driver, restaurant, route } = res.data;
@@ -1214,16 +1221,35 @@
                 restaurantMarker = L.marker([rLat, rLng], { icon: dynIcon }).addTo(trackMap).bindPopup(restaurant.name || restaurantName);
             }
 
-            // Draw full polyline then immediately trim to driver's current position
-            if (route?.polyline) {
-                drawPolyline(route.polyline);       // stores full coords + draws
-                trimPolylineFromDriver(dLat, dLng); // cuts off already-traveled part
+            // Draw route using OSRM API (Only for polyline)
+            if (isInitial || !fullPolylineCoords) {
+                try {
+                    const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${dLng},${dLat};${rLng},${rLat}?geometries=geojson`);
+                    const osrmData = await osrmRes.json();
+                    if (osrmData.routes && osrmData.routes.length > 0) {
+                        const osrmRoute = osrmData.routes[0];
+                        const coords = osrmRoute.geometry.coordinates.map(c => [c[1], c[0]]);
+
+                        fullPolylineCoords = coords;
+                    } else {
+                        fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
+                    }
+                } catch (err) {
+                    console.error("OSRM Route error:", err);
+                    if (!fullPolylineCoords) {
+                        fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
+                    }
+                }
             }
 
-            trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [50, 50] });
+            trimPolylineFromDriver(dLat, dLng);
+
+            if (isInitial) {
+                trackMap.fitBounds([[dLat, dLng], [rLat, rLng]], { padding: [50, 50] });
+            }
             document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
 
-            // Show distance & ETA in footer
+            // Show distance & ETA in footer from backend API
             if (route?.distance_metres) {
                 const km = (route.distance_metres / 1000).toFixed(1);
                 document.getElementById('track-dist-val').textContent = km + ' km';
@@ -1241,7 +1267,7 @@
                 document.getElementById('track-eta-info').style.gap = '5px';
             }
 
-            // ── Map ETA overlay ──
+            // ── Map ETA overlay from backend API ──
             const overlay = document.getElementById('map-eta-overlay');
             if (route?.duration_seconds || route?.distance_metres) {
                 overlay.style.display = 'block';
@@ -1291,6 +1317,22 @@
         loadLiveDrivers();
         loadShift('today');
         setInterval(() => { if (!document.hidden) loadLiveDrivers(); }, 10000000);
+
+        // ── Live ETA Countdown ────────────────────────────────────
+        setInterval(() => {
+            document.querySelectorAll('.live-eta').forEach(el => {
+                let s = parseInt(el.getAttribute('data-eta-seconds'));
+                if (s > 0) {
+                    s--;
+                    el.setAttribute('data-eta-seconds', s);
+                    const m = Math.floor(s / 60);
+                    const remS = s % 60;
+                    el.textContent = `${m.toString().padStart(2, '0')}:${remS.toString().padStart(2, '0')}`;
+                } else if (s === 0) {
+                    el.textContent = '00:00';
+                }
+            });
+        }, 1000);
     </script>
 </body>
 
