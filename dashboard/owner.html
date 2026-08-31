@@ -849,16 +849,43 @@
 
         // ── Helpers ───────────────────────────────────────────────
 
-        function playReturningSound() {
-            const audio = new Audio('../alert.mp3');
+        // ── Restaurant Sound (dynamic) ─────────────────────────────
+        let _restaurantSoundUrl = null; // cached after first fetch
 
-            audio.onended = () => {
-                audio.onended = null;
+        async function fetchRestaurantSound() {
+            if (_restaurantSoundUrl !== null) return _restaurantSoundUrl;
+            try {
+                const res = await apiCall('/restaurant/sound');
+                if (
+                    res.success &&
+                    res.data &&
+                    res.data.sound &&
+                    res.data.sound.status === 'active' &&
+                    res.data.sound.file
+                ) {
+                    _restaurantSoundUrl = STORAGE_BASE + res.data.sound.file.replace(/^\//, '');
+                } else {
+                    _restaurantSoundUrl = '../alert.mp3';
+                }
+            } catch (e) {
+                _restaurantSoundUrl = '../alert.mp3'; // fallback: network error
+            }
+            return _restaurantSoundUrl;
+        }
+
+        async function playReturningSound() {
+            const soundUrl = await fetchRestaurantSound();
+            const audio = new Audio(soundUrl);
+
+            audio.play().catch(() => {
+                // Browser autoplay policy blocked — needs user interaction first
+            });
+
+
+            setTimeout(() => {
+                audio.pause();
                 audio.currentTime = 0;
-                audio.play();
-            };
-
-            audio.play();
+            }, 2000);
         }
         function avatarUrl(path) {
             if (!path) return null;
@@ -1173,7 +1200,7 @@
             locationChannel.bind('location.updated', (raw) => {
                 updateMarkersOnly(parseFloat(raw.data.latitude), parseFloat(raw.data.longitude));
             });
-            trackInterval = setInterval(() => updateTrackLocation(false), 10000);
+            trackInterval = setInterval(() => updateTrackLocation(false), 50000);
         }
 
         async function notifyDriver(driverId, btn) {
@@ -1221,25 +1248,18 @@
                 restaurantMarker = L.marker([rLat, rLng], { icon: dynIcon }).addTo(trackMap).bindPopup(restaurant.name || restaurantName);
             }
 
-            // Draw route using OSRM API (Only for polyline)
-            if (isInitial || !fullPolylineCoords) {
-                try {
-                    const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${dLng},${dLat};${rLng},${rLat}?geometries=geojson`);
-                    const osrmData = await osrmRes.json();
-                    if (osrmData.routes && osrmData.routes.length > 0) {
-                        const osrmRoute = osrmData.routes[0];
-                        const coords = osrmRoute.geometry.coordinates.map(c => [c[1], c[0]]);
-
-                        fullPolylineCoords = coords;
-                    } else {
-                        fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
-                    }
-                } catch (err) {
-                    console.error("OSRM Route error:", err);
-                    if (!fullPolylineCoords) {
-                        fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
-                    }
+            // Draw route using OSRM API (free) — always re-fetch so route follows real roads
+            try {
+                const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${dLng},${dLat};${rLng},${rLat}?geometries=geojson&overview=full`);
+                const osrmData = await osrmRes.json();
+                if (osrmData.routes && osrmData.routes.length > 0) {
+                    fullPolylineCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                } else {
+                    fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
                 }
+            } catch (err) {
+                console.error('OSRM Route error:', err);
+                if (!fullPolylineCoords) fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
             }
 
             trimPolylineFromDriver(dLat, dLng);
@@ -1290,12 +1310,29 @@
             setTimeout(() => trackMap.invalidateSize(), 100);
         }
 
-        function updateMarkersOnly(dLat, dLng) {
+        // Called by Pusher on every live location broadcast
+        async function updateMarkersOnly(dLat, dLng) {
             if (!driverMarker || !trackMap) return;
             driverMarker.setLatLng([dLat, dLng]);
-            // Trim the cached polyline to show only the remaining route
-            trimPolylineFromDriver(dLat, dLng);
             document.getElementById('track-updated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+
+            // Re-fetch OSRM route from driver's NEW position → road-following path (not straight line)
+            if (restaurantMarker) {
+                const { lat: rLat, lng: rLng } = restaurantMarker.getLatLng();
+                try {
+                    const osrmRes = await fetch(`https://router.project-osrm.org/route/v1/driving/${dLng},${dLat};${rLng},${rLat}?geometries=geojson&overview=full`);
+                    const osrmData = await osrmRes.json();
+                    if (osrmData.routes && osrmData.routes.length > 0) {
+                        fullPolylineCoords = osrmData.routes[0].geometry.coordinates.map(c => [c[1], c[0]]);
+                    } else {
+                        fullPolylineCoords = [[dLat, dLng], [rLat, rLng]];
+                    }
+                } catch (err) {
+                    console.error('OSRM re-route error:', err);
+                }
+            }
+
+            trimPolylineFromDriver(dLat, dLng);
         }
 
         function closeTrackModal() {
